@@ -30,7 +30,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	"${lib_root}/src/arch/win32/timer.cpp"
 	)
 endif()
+message(STATUS "Building sl_lidar_sdk for ${CMAKE_SYSTEM_NAME}")
+
 add_library(sl_lidar_sdk STATIC ${sl_lidar_sdk_srcs})
+target_link_libraries(sl_lidar_sdk "$<$<CXX_COMPILER_ID:GNU>:-pthread>$<$<CXX_COMPILER_ID:Clang>:-pthreads>")
 target_include_directories(sl_lidar_sdk PUBLIC
 	"${lib_root}/src"
 	"${lib_root}/include"

@@ -12,4 +12,4 @@ target_include_directories(scan_provider PRIVATE
 )
 
 target_link_libraries(scan_provider LINK_PUBLIC sl_lidar_sdk)
-target_link_libraries(scan_provider PRIVATE asio::asio)
+#target_link_libraries(scan_provider PRIVATE asio::asio)
