@@ -1,0 +1,170 @@
+
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include "sl_lidar.h"
+#include "sl_lidar_driver.h"
+
+#include "LidarConnection.h"
+
+#define PORT 55511
+
+#ifndef _countof
+#define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
+#endif
+
+#ifdef _WIN32
+#include <Windows.h>
+#define delay(x)   ::Sleep(x)
+#else
+#include <unistd.h>
+static inline void delay(sl_word_size_t ms){
+    while (ms>=1000){
+        usleep(1000*1000);
+        ms-=1000;
+    };
+    if (ms!=0)
+        usleep(ms*1000);
+}
+#endif
+
+struct MeasurementPoint {
+    bool start_flag;
+    float raw_angle;
+    float distance;
+    int quality;
+};
+
+void display_data(std::vector<MeasurementPoint>* output_data_point)
+{
+    for (int i = 0; i < output_data_point->size(); i++) {
+        std::cout << "start_flag: " << output_data_point->at(i).start_flag << " ";
+        std::cout << "raw_angle: " << output_data_point->at(i).raw_angle << " ";
+        std::cout << "distance: " << output_data_point->at(i).distance << " ";
+        std::cout << "quality: " << output_data_point->at(i).quality << std::endl;
+    }
+}
+
+void write_to_csv(std::vector<MeasurementPoint>* output_data_point, std::string file_path)
+{
+    std::ofstream output_file;
+    output_file.open(file_path);
+    output_file << "start_flag,raw_angle,distance,quality\n";
+    for (int i = 0; i < output_data_point->size(); i++) {
+        output_file << output_data_point->at(i).start_flag << ",";
+        output_file << output_data_point->at(i).raw_angle << ",";
+        output_file << output_data_point->at(i).distance << ",";
+        output_file << output_data_point->at(i).quality << "\n";
+    }
+    output_file.close();
+}
+
+sl_result capture_data(sl::ILidarDriver* drv, std::vector<MeasurementPoint>* output_data_point)
+{
+    sl_result ans;
+
+    sl_lidar_response_measurement_node_hq_t nodes[8192];
+    size_t   count = _countof(nodes);
+    
+    std::cout << "waiting for data..." << std::endl;
+
+    ans = drv->grabScanDataHq(nodes, count, 0);
+    if (SL_IS_OK(ans) || ans == SL_RESULT_OPERATION_TIMEOUT) {
+        drv->ascendScanData(nodes, count);
+        output_data_point->clear();
+        for (int pos = 0; pos < (int)count; ++pos) {
+            MeasurementPoint point;
+            point.start_flag = (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT);
+            point.raw_angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+            point.distance = nodes[pos].dist_mm_q2 / 4.0f;
+            point.quality = nodes[pos].quality;
+            output_data_point->push_back(point);
+        }
+    }
+    else {
+        printf("error code: %x\n", ans);
+    }
+
+    return ans;
+}
+
+int main(int argc, const char* argv[]) {
+    // start connection
+    LidarConnection* conn = new LidarConnection("COM5", 115200);
+    sl::ILidarDriver* drv = conn->get_driver();
+
+    // show all supported modes
+    std::vector<sl::LidarScanMode> scanModes;
+    drv->getAllSupportedScanModes(scanModes);
+    std::cout << "[Supported modes]" << std::endl;
+    for (int i = 0; i < scanModes.size(); i++) {
+        std::cout << "id: " << scanModes[i].id << " ";
+        std::cout << "us_per_sample: " << scanModes[i].us_per_sample << " ";
+        std::cout << "max_distance: " << scanModes[i].max_distance << " ";
+        std::cout << "ans_type: " << scanModes[i].ans_type << " ";
+        std::cout << "scan_mode: " << scanModes[i].scan_mode << std::endl;
+    }
+
+    // start server
+    
+    // scan
+    for (int scan_mode_index = 3; scan_mode_index <= 3; scan_mode_index++) {
+        drv->reset();
+        drv->setMotorSpeed();
+        std::cout << "Scan mode [" << scanModes[scan_mode_index].id << "] - " << scanModes[scan_mode_index].scan_mode << std::endl;
+        if (SL_IS_FAIL(drv->startScanExpress(0, scanModes[scan_mode_index].id))) {
+            std::cerr << "error, cannot start the scan operation" << std::endl;
+        }
+        delay(3000);
+
+        // make filename 
+        std::stringstream filename;
+        filename << "CXX_" << scan_mode_index << "_" << scanModes[scan_mode_index].scan_mode << ".csv";
+
+        // make file
+        std::ofstream output_file(filename.str());
+        output_file << "iteration,start_flag,raw_angle,distance,quality\n";
+
+        // make average distance
+        int avg_ang_range[2] = { 10, 350 };
+        std::vector<float> dist_in_range;
+        float avg_dist = 0.0f;
+
+        for (int iteration = 1; iteration <= 10; iteration++) {
+            //delay(100);
+            std::cout << "Iteration " << iteration << std::endl;
+            std::vector<MeasurementPoint> scan_data;
+            if (SL_IS_FAIL(capture_data(drv, &scan_data)))
+            {
+                std::cerr << "error, cannot grab scan data" << std::endl;
+            }
+            //display_data(&scan_data);
+            // write data
+            for (int j = 0; j < scan_data.size(); j++) {
+                output_file << iteration << ",";
+                output_file << scan_data.at(j).start_flag << ",";
+                output_file << scan_data.at(j).raw_angle << ",";
+                output_file << scan_data.at(j).distance << ",";
+                output_file << scan_data.at(j).quality << "\n";
+                if (scan_data.at(j).raw_angle >= avg_ang_range[0] && scan_data.at(j).raw_angle <= avg_ang_range[1]) {
+                    dist_in_range.push_back(scan_data.at(j).distance);
+                }
+            }
+        }
+        
+        for (int i = 0; i < dist_in_range.size(); i++)
+        {
+            avg_dist += dist_in_range.at(i);
+        }
+        avg_dist = avg_dist / dist_in_range.size();
+        std::cout << "average distance of angles [" << avg_ang_range[0] << "," << avg_ang_range[1] << "] is " << avg_dist << std::endl;
+        output_file.close();
+    }
+    
+    // stop connectionn
+    conn->destroy_connection();
+    delete conn;
+    return 0;
+}
