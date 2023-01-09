@@ -9,17 +9,17 @@
 
 #include "LidarConnection.h"
 
-#define PORT 55511
-
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
 
 #ifdef _WIN32
 #include <Windows.h>
+#define SERIAL_PORT "COM5"
 #define delay(x)   ::Sleep(x)
 #else
 #include <unistd.h>
+#define SERIAL_PORT "/dev/ttyUSB0"
 static inline void delay(sl_word_size_t ms){
     while (ms>=1000){
         usleep(1000*1000);
@@ -68,7 +68,7 @@ float avg_dist_in_angle_range(std::vector<MeasurementPoint>* data_point) {
     {
         float dist = data_point->at(i).distance;
         float angle = data_point->at(i).raw_angle;
-        float epsilon = 0.001f;
+        float epsilon = 20.0f;
         if ((dist > 0) && ((angle <= epsilon && angle >= 0) || (angle >= 360-epsilon && angle <= 360))) {
             count++;
             avg_dist += data_point->at(i).distance;
@@ -113,7 +113,7 @@ sl_result capture_data(sl::ILidarDriver* drv, std::vector<MeasurementPoint>* out
 
 int main(int argc, const char* argv[]) {
     // start connection
-    LidarConnection* conn = new LidarConnection("COM5", 115200);
+    LidarConnection* conn = new LidarConnection(SERIAL_PORT, 115200);
     sl::ILidarDriver* drv = conn->get_driver();
 
     // show all supported modes
@@ -138,7 +138,7 @@ int main(int argc, const char* argv[]) {
     delay(3000);
     std::vector<MeasurementPoint> scan_data;
     while (true) {
-        delay(200);
+        delay(300);
         scan_data.clear();
         if (SL_IS_FAIL(capture_data(drv, &scan_data)))
         {
