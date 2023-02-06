@@ -11,6 +11,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "$<0:>${CMAKE_BINARY_DIR}/out/lib") # .lib an
 
 add_subdirectory(scan_provider)
 add_subdirectory(lib/rplidar)
+add_subdirectory(lib/clsocket)
+add_subdirectory(lib/HTTPRequest)
 
 #====asio lib====
 # Force the script to use FetchContent and not CPM internally to fetch asio

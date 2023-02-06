@@ -1,3 +1,5 @@
+#include "definitions.h"
+
 #include "LidarConnection.h"
 
 #include <iostream>
@@ -6,14 +8,13 @@
 #include "sl_lidar.h" 
 #include "sl_lidar_driver.h"
 
-
 // Constructor
-LidarConnection::LidarConnection(std::string port, int baudrate)
+lc::LidarConnection::LidarConnection(std::string port, int baudrate)
 {
 	this->connect(port, baudrate);
 }
 
-void LidarConnection::read_versions()
+void lc::LidarConnection::read_versions()
 {
 	sl_lidar_response_device_info_t device_info;
 	auto res = driver->getDeviceInfo(device_info);
@@ -46,7 +47,7 @@ void LidarConnection::read_versions()
 	}
 }
 
-void LidarConnection::read_health()
+void lc::LidarConnection::read_health()
 {
 	sl_lidar_response_device_health_t health_info;
 	auto res = driver->getHealth(health_info);
@@ -70,7 +71,7 @@ void LidarConnection::read_health()
 	}
 }
 
-void LidarConnection::connect(std::string port, int baudrate)
+void lc::LidarConnection::connect(std::string port, int baudrate)
 {
 	std::cout << "connecting to " << port << " with baudrate " << baudrate << std::endl;
 	channel = *sl::createSerialPortChannel(port, baudrate);
@@ -101,9 +102,39 @@ void LidarConnection::connect(std::string port, int baudrate)
 	std::cout << ", Health: " << health_status << std::endl;
 }
 
-void LidarConnection::destroy_connection()
+void lc::LidarConnection::destroy_connection()
 {
 	printf("destroying connection");
 	delete channel;
 	delete driver;
+}
+
+sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* output_data_point)
+{
+	sl_result ans;
+
+	sl_lidar_response_measurement_node_hq_t nodes[8192];
+	size_t   count = _countof(nodes);
+
+	//std::cout << "waiting for data..." << std::endl;
+	delay(300);
+
+	ans = driver->grabScanDataHq(nodes, count, 0);
+	if (SL_IS_OK(ans) || ans == SL_RESULT_OPERATION_TIMEOUT) {
+		driver->ascendScanData(nodes, count);
+		output_data_point->clear();
+		for (int pos = 0; pos < (int)count; ++pos) {
+			MeasurementPoint point;
+			point.start_flag = (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT);
+			point.raw_angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+			point.distance = nodes[pos].dist_mm_q2 / 4.0f;
+			point.quality = nodes[pos].quality;
+			output_data_point->push_back(point);
+		}
+	}
+	else {
+		printf("error code: %x\n", ans);
+	}
+
+	return ans;
 }
