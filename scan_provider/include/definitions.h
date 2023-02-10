@@ -1,8 +1,7 @@
 #ifndef DEFINITIONS
 #define DEFINITIONS
 
-#define SERVER_ADDR "127.0.0.1"
-#define SERVER_PORT 15245
+#define SERVER_ENDPOINT "http://127.0.0.1:8000/api/v1/rplidar"
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))

@@ -11,6 +11,8 @@
 
 #include "ActiveSocket.h"
 
+#include "HTTPRequest.hpp"
+
 #include "definitions.h"
 
 
@@ -70,51 +72,38 @@ int main(int argc, const char* argv[]) {
     }
     delay(2000);
 
-    // start client
-    CActiveSocket* client;
+    
     while (true) {
         // scan
         std::vector<lc::MeasurementPoint> scan_data;
         conn->capture_data(&scan_data);
-        std::string scan_csv = "AABBCC" + points_to_csv_string(&scan_data) + "XXYYZZ";
+        std::string scan_csv = points_to_csv_string(&scan_data);
 
-        client = new CActiveSocket;
-        client->Initialize();
-        std::cout << "Main Loop" << std::endl;
-        if (client->Open(SERVER_ADDR, SERVER_PORT)) {
-            std::cout << "Sending" << std::endl;
-            auto dataStr = scan_csv.c_str();
-            int chunk_size = 1024;
-            for (int i = 0; i <= strlen(dataStr); i += chunk_size) {
-                // manage start and end index
-                int start_ind = i;
-                int end_ind = i + chunk_size - 1;
-                if (end_ind > strlen(dataStr) - 1) {
-                    end_ind = strlen(dataStr) - 1;
-                }
+        // send data here
+        try {
+            std::string output;
+            http::Request request{ SERVER_ENDPOINT, http::InternetProtocol::v4 };
 
-                // cut string in range
-                std::string chunk_data = "";
-                for (int j = start_ind; j <= end_ind; j++) {
-                    chunk_data += dataStr[j];
-                }
-
-                // sending logic
-                int send_result = 0;
-                do {
-                    send_result = client->Send((const uint8*)chunk_data.c_str(), strlen(chunk_data.c_str()));
-                    std::cout << std::endl << "sending chunk_size: " << strlen(chunk_data.c_str()) << std::endl;
-                    std::cout << chunk_data;
-                } while (!send_result);
-                
-            }
-            std::cout << std::endl;
-
-            std::cout << "Closing connection" << std::endl;
-            client->Close();
-            delete client;
+            const auto resp = request.send("GET",scan_csv,{
+            {"Content-Type", "text/csv"},
+            {"User-Agent", "rplidar/a1m8"},
+            {"Accept", "*/*"}
+                });
+            std::cout << "resp: " << std::string{resp.body.begin(), resp.body.end()} << '\n';
         }
-        break;
+        catch (const http::RequestError& e)
+        {
+            std::cerr << "Request error: " << e.what() << std::endl;
+        }
+        catch (const http::ResponseError& e)
+        {
+            std::cerr << "Response error: " << e.what() << std::endl;
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+            return -1;
+        }
     }
 
     conn->destroy_connection();
