@@ -9,9 +9,7 @@
 
 #include "LidarConnection.h"
 
-#include "ActiveSocket.h"
-
-#include "HTTPRequest.hpp"
+#include <cpr/cpr.h>
 
 #include "definitions.h"
 
@@ -52,10 +50,6 @@ float avg_dist_in_angle_range(std::vector<lc::MeasurementPoint>* data_point) {
             count++;
             avg_dist += data_point->at(i).distance;
         }
-        //if ((dist > 0) && ((angle <= 5 && angle >= 0) || (angle >= 355 && angle <= 360))) {
-        //    count++;
-        //    avg_dist += data_point->at(i).distance;
-        //}
     }
     avg_dist = avg_dist / count;
     return avg_dist;
@@ -72,38 +66,33 @@ int main(int argc, const char* argv[]) {
     }
     delay(2000);
 
+
     
     while (true) {
         // scan
         std::vector<lc::MeasurementPoint> scan_data;
-        conn->capture_data(&scan_data);
+        conn->capture_data(&scan_data); //[TODO: improve scan interval]
         std::string scan_csv = points_to_csv_string(&scan_data);
 
         // send data here
-        try {
-            std::string output;
-            http::Request request{ SERVER_ENDPOINT, http::InternetProtocol::v4 };
+        cpr::Response r = cpr::Post(cpr::Url{ SERVER_ENDPOINT },
+            cpr::Body{ scan_csv },
+            cpr::Header{ {"Content-Type", "text/plain"} });
+        std::cout << "[HTTP-" << r.status_code << "] ";
+        if (r.status_code == 0) {
+            std::cout << "cannot connect to server" << std::endl;
+            continue;
+        }
+        if (r.text == "{\"status\": \"OK\"}") {
+            std::cout << "valid response" << std::endl;
+            continue;
+        }
+        else {
+            std::cout << "invalid response" << std::endl;
+            continue;
+        }
+        std::cout << std::endl;
 
-            const auto resp = request.send("GET",scan_csv,{
-            {"Content-Type", "text/csv"},
-            {"User-Agent", "rplidar/a1m8"},
-            {"Accept", "*/*"}
-                });
-            std::cout << "resp: " << std::string{resp.body.begin(), resp.body.end()} << '\n';
-        }
-        catch (const http::RequestError& e)
-        {
-            std::cerr << "Request error: " << e.what() << std::endl;
-        }
-        catch (const http::ResponseError& e)
-        {
-            std::cerr << "Response error: " << e.what() << std::endl;
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Error: " << e.what() << std::endl;
-            return -1;
-        }
     }
 
     conn->destroy_connection();
