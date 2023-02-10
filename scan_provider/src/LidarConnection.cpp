@@ -128,7 +128,7 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 
 			//Raw data
 			point.start_flag = (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT);
-			point.raw_angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+			point.angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
 			point.distance = nodes[pos].dist_mm_q2 / 4.0f;
 			point.quality = nodes[pos].quality;
 

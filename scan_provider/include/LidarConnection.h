@@ -4,7 +4,7 @@
 namespace lc {
 	struct MeasurementPoint {
 		bool start_flag;
-		float raw_angle;
+		float angle;
 		float distance;
 		int quality;
 	};

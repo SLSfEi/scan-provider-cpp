@@ -18,7 +18,7 @@ void display_data(std::vector<lc::MeasurementPoint>* output_data_point)
 {
     for (int i = 0; i < output_data_point->size(); i++) {
         std::cout << "start_flag: " << output_data_point->at(i).start_flag << " ";
-        std::cout << "raw_angle: " << output_data_point->at(i).raw_angle << " ";
+        std::cout << "angle: " << output_data_point->at(i).angle << " ";
         std::cout << "distance: " << output_data_point->at(i).distance << " ";
         std::cout << "quality: " << output_data_point->at(i).quality << std::endl;
     }
@@ -28,10 +28,10 @@ std::string points_to_csv_string(std::vector<lc::MeasurementPoint>* output_data_
 {
     std::stringstream output_stream;
 
-    output_stream << "start_flag,raw_angle,distance,quality\n";
+    output_stream << "start_flag,angle,distance,quality\n";
     for (int i = 0; i < output_data_point->size(); i++) {
         output_stream << output_data_point->at(i).start_flag << ",";
-        output_stream << output_data_point->at(i).raw_angle << ",";
+        output_stream << output_data_point->at(i).angle << ",";
         output_stream << output_data_point->at(i).distance << ",";
         output_stream << output_data_point->at(i).quality << "\n";
     }
@@ -44,7 +44,7 @@ float avg_dist_in_angle_range(std::vector<lc::MeasurementPoint>* data_point) {
     for (int i = 0; i < data_point->size(); i++)
     {
         float dist = data_point->at(i).distance;
-        float angle = data_point->at(i).raw_angle;
+        float angle = data_point->at(i).angle;
         float epsilon = 20.0f;
         if ((dist > 0) && ((angle <= epsilon && angle >= 0) || (angle >= 360-epsilon && angle <= 360))) {
             count++;
@@ -77,7 +77,7 @@ int main(int argc, const char* argv[]) {
         // send data here
         cpr::Response r = cpr::Post(cpr::Url{ SERVER_ENDPOINT },
             cpr::Body{ scan_csv },
-            cpr::Header{ {"Content-Type", "text/plain"} });
+            cpr::Header{ {"Content-Type", "text/csv"} });
         std::cout << "[HTTP-" << r.status_code << "] ";
         if (r.status_code == 0) {
             std::cout << "cannot connect to server" << std::endl;
