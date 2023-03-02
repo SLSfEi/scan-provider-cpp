@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 #include "sl_lidar.h" 
 #include "sl_lidar_driver.h"
@@ -117,9 +118,10 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 	size_t   count = _countof(nodes);
 
 	//std::cout << "waiting for data..." << std::endl;
-	delay(300);
+	//delay(300);
 
-	ans = driver->grabScanDataHq(nodes, count, 0);
+	ans = driver->grabScanDataHq(nodes, count, 20000U);
+
 	if (SL_IS_OK(ans) || ans == SL_RESULT_OPERATION_TIMEOUT) {
 		driver->ascendScanData(nodes, count);
 		output_data_point->clear();
@@ -132,6 +134,9 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 			point.distance = nodes[pos].dist_mm_q2 / 4.0f;
 			point.quality = nodes[pos].quality;
 
+			point.x = point.distance * std::cosf((point.angle - 270.0f) * M_PI / 180.0f);
+			point.y = point.distance * std::sinf((point.angle - 270.0f) * M_PI / 180.0f);
+
 			//Correction (LINEAR REGRESSION)
 			point.distance = 308.8217f + (0.7213f * point.distance);
 
@@ -141,6 +146,5 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 	else {
 		printf("error code: %x\n", ans);
 	}
-
 	return ans;
 }

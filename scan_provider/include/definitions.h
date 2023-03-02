@@ -1,7 +1,9 @@
 #ifndef DEFINITIONS
 #define DEFINITIONS
 
-#define SERVER_ENDPOINT "http://127.0.0.1:8000/api/v1/rplidar"
+#define SERVER_ENDPOINT "http://127.0.0.1:8000/api/v1/scan"
+
+#define M_PI   3.14159265358979323846264338327950288
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))

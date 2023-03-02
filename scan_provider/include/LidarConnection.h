@@ -6,6 +6,8 @@ namespace lc {
 		bool start_flag;
 		float angle;
 		float distance;
+		float x;
+		float y;
 		int quality;
 	};
 
