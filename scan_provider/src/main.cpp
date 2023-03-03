@@ -1,19 +1,17 @@
-
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
 #include <signal.h>
 
 #include "sl_lidar.h"
 #include "sl_lidar_driver.h"
 
-#include "LidarConnection.h"
-
 #include <cpr/cpr.h>
 
+#include "LidarConnection.h"
 #include "definitions.h"
+
+#include "INIReader.h"
 
 
 void display_data(std::vector<lc::MeasurementPoint>* output_data_point)
@@ -67,28 +65,68 @@ void ctrlc(int)
     ctrl_c_pressed = true;
 }
 
+void check_config_var(std::string name, std::string var, std::string default="UNDEFINED"){
+    if(var != default){
+        std::cout << name << ": " << var << std::endl;
+    } else {
+        std::cout << name << " is undefined, exiting" << std::endl;
+        exit(1);
+    }
+}
+
+void check_config_var(std::string name, int var, int default=-1){
+    if(var != default){
+        std::cout << name << ": " << var << std::endl;
+    } else {
+        std::cout << name << " is undefined, exiting" << std::endl;
+        exit(1);
+    }
+}
+
 int main(int argc, const char* argv[]) {
 
+    // dealing with exit (destroy driver first)
     signal(SIGINT, ctrlc);
     signal(SIGABRT, ctrlc);
     signal(SIGTERM, ctrlc);
 
-    // start connection
-    lc::LidarConnection* conn = new lc::LidarConnection(SERIAL_PORT, 115200);
-    sl::ILidarDriver* drv = conn->get_driver();
+    // load config file
+    std::cout << "==========[" << "config" << "]==========" << std::endl;
+    INIReader reader("./config.ini");
+    if (reader.ParseError() != 0) {
+        std::cout << "error, can't load 'config.ini'\n";
+        return 1;
+    }
 
+    auto server_endpoint = reader.Get("connection","server_endpoint","UNDEFINED");
+    auto serial_port = reader.Get("serial","port","UNDEFINED");
+    auto serial_baudrate = reader.GetInteger("serial","baudrate",-1);
+    auto base_delay = reader.GetInteger("retry","base_delay", -1);
+    auto max_delay = reader.GetInteger("retry","max_delay", -1);
+    std::cout << "config.ini loaded" << std::endl;
+    check_config_var("server_endpoint", server_endpoint);
+    check_config_var("serial_port", serial_port);
+    check_config_var("serial_baudrate", serial_baudrate);
+    check_config_var("base_delay", base_delay);
+    check_config_var("max_delay", max_delay);
+    std::cout << "all config loaded" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "==========[" << "lidar" << "]==========" << std::endl;
+    // start connection
+    lc::LidarConnection* conn = new lc::LidarConnection(serial_port, serial_baudrate);
+    sl::ILidarDriver* drv = conn->get_driver();
+    std::cout << std::endl;
+
+    std::cout << "==========[" << "scan" << "]==========" << std::endl;
     drv->setMotorSpeed();
     if (SL_IS_FAIL(drv->startScanExpress(0, 3))) {
         std::cerr << "error, cannot start the scan operation" << std::endl;
     }
     delay(2000);
 
-
     bool is_failing = FALSE;
-    int base_delay = 300;
     int cur_delay = 300;
-    int max_delay = 3000;
-    
     while (true) {
 
         if (ctrl_c_pressed) {
@@ -104,6 +142,8 @@ int main(int argc, const char* argv[]) {
                 std::cout << "lidar failing" << std::endl;
                 if(cur_delay + cur_delay <= max_delay){
                     cur_delay += cur_delay;
+                } else {
+                    cur_delay = max_delay;
                 }
             } else
             {
