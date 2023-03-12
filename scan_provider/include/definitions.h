@@ -10,7 +10,7 @@
 #endif
 
 #ifndef EPSILON
-#define EPSILON 0.0001
+#define EPSILON 0.0005
 #endif
 
 #ifdef _WIN32
