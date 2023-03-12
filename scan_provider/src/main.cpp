@@ -93,19 +93,6 @@ bool check_config_var(std::string name, int var, int default_val=-1, bool will_e
     }
 }
 
-bool check_config_var(std::string name, float var, float default_val=-1.0f, bool will_exit=true){
-    if(var != default_val){
-        std::cout << name << ": " << var << std::endl;
-        return true;
-    } else {
-        std::cout << name << " is undefined, exiting" << std::endl;
-        if(will_exit){
-            exit(1);
-        }
-        return false;
-    }
-}
-
 void gen_random_scan_data(std::vector<lc::MeasurementPoint>* output_data_point){
     std::random_device rd;
     std::mt19937 gen(rd());
