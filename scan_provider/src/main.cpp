@@ -93,6 +93,19 @@ bool check_config_var(std::string name, int var, int default_val=-1, bool will_e
     }
 }
 
+bool check_config_var(std::string name, float var, float default_val=-1.0f, bool will_exit=true){
+    if(var != default_val){
+        std::cout << name << ": " << var << std::endl;
+        return true;
+    } else {
+        std::cout << name << " is undefined, exiting" << std::endl;
+        if(will_exit){
+            exit(1);
+        }
+        return false;
+    }
+}
+
 void gen_random_scan_data(std::vector<lc::MeasurementPoint>* output_data_point){
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -140,6 +153,8 @@ int main(int argc, const char* argv[]) {
     auto serial_baudrate = reader.GetInteger("serial","baudrate",-1);
     int base_delay = reader.GetInteger("retry","base_delay", -1);
     int max_delay = reader.GetInteger("retry","max_delay", -1);
+    float correction_offset = reader.GetFloat("correction","offset", 0.0f);
+    float correction_multiplier = reader.GetFloat("correction","multiplier", 1.0f);
     bool gen_random = reader.GetBoolean("debug","gen_random",false);
     std::cout << "config.ini loaded" << std::endl;
     check_config_var("server_endpoint", server_endpoint);
@@ -147,6 +162,8 @@ int main(int argc, const char* argv[]) {
     check_config_var("serial_baudrate", serial_baudrate);
     check_config_var("base_delay", base_delay);
     check_config_var("max_delay", max_delay);
+    std::cout << "correction_offset: " << correction_offset << std::endl;
+    std::cout << "correction_multiplier: " << correction_multiplier << std::endl;
     if(gen_random){
         std::cout << "gen_random: true" << std::endl;
     }
@@ -188,6 +205,7 @@ int main(int argc, const char* argv[]) {
     std::cout << "==========[" << "lidar" << "]==========" << std::endl;
     // start connection
     lc::LidarConnection* conn = new lc::LidarConnection(serial_port, serial_baudrate);
+    conn->set_correction_parameters(correction_offset, correction_multiplier);
     sl::ILidarDriver* drv = conn->get_driver();
     std::cout << std::endl;
 

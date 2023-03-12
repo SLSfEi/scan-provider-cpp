@@ -77,6 +77,12 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "any": "cpp",
+        "cwctype": "cpp",
+        "filesystem": "cpp",
+        "numbers": "cpp",
+        "random": "cpp",
+        "variant": "cpp"
     }
 }

@@ -9,6 +9,10 @@
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
 
+#ifndef EPSILON
+#define EPSILON 0.0001
+#endif
+
 #ifdef _WIN32
 #define delay(x)   ::Sleep(x)
 #else

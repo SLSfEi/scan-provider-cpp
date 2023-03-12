@@ -110,6 +110,11 @@ void lc::LidarConnection::destroy_connection()
 	delete driver;
 }
 
+void lc::LidarConnection::set_correction_parameters(float offset, float multiplier){
+	correction_offset = offset;
+	correction_multiplier = multiplier;
+}
+
 sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* output_data_point)
 {
 	sl_result ans;
@@ -117,25 +122,26 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 	sl_lidar_response_measurement_node_hq_t nodes[8192];
 	size_t   count = _countof(nodes);
 
-	//std::cout << "waiting for data..." << std::endl;
-	//delay(300);
-
 	ans = driver->grabScanDataHq(nodes, count, 20000U);
 
 	if (SL_IS_OK(ans) || ans == SL_RESULT_OPERATION_TIMEOUT) {
 		driver->ascendScanData(nodes, count);
 		output_data_point->clear();
 		for (int pos = 0; pos < (int)count; ++pos) {
+			float dist = nodes[pos].dist_mm_q2 / 4.0f;
+			if(dist <= EPSILON){
+				continue;
+			}
 			MeasurementPoint point;
 
 			//Raw data
 			point.start_flag = (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT);
 			point.angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
-			point.distance = nodes[pos].dist_mm_q2 / 4.0f;
+			point.distance = dist;
 			point.quality = nodes[pos].quality;
 
 			//Correction (LINEAR REGRESSION)
-			point.distance = 308.8217f + (0.7213f * point.distance);
+			point.distance = correction_offset + (correction_multiplier * point.distance);
 
 			point.x = point.distance * std::cos((point.angle - 270.0f) * M_PI / 180.0f);
 			point.y = point.distance * std::sin((point.angle - 270.0f) * M_PI / 180.0f);
