@@ -137,8 +137,8 @@ sl_result lc::LidarConnection::capture_data(std::vector<lc::MeasurementPoint>* o
 			//Correction (LINEAR REGRESSION)
 			point.distance = 308.8217f + (0.7213f * point.distance);
 
-			point.x = point.distance * std::cosf((point.angle - 270.0f) * M_PI / 180.0f);
-			point.y = point.distance * std::sinf((point.angle - 270.0f) * M_PI / 180.0f);
+			point.x = point.distance * std::cos((point.angle - 270.0f) * M_PI / 180.0f);
+			point.y = point.distance * std::sin((point.angle - 270.0f) * M_PI / 180.0f);
 
 			output_data_point->push_back(point);
 		}

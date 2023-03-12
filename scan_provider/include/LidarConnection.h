@@ -30,7 +30,7 @@ namespace lc {
 		std::string get_hardware() { return hardware_version; }
 		void connect(std::string port, int baudrate);
 		void destroy_connection();
-		sl_result LidarConnection::capture_data(std::vector<MeasurementPoint>* output_data_point);
+		sl_result capture_data(std::vector<MeasurementPoint>* output_data_point);
 	};
 
 }

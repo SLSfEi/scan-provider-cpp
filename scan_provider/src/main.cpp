@@ -112,8 +112,8 @@ void gen_random_scan_data(std::vector<lc::MeasurementPoint>* output_data_point){
 		point.distance = distance;
 		point.quality = quality;
 
-		point.x = point.distance * std::cosf((point.angle - 270.0f) * M_PI / 180.0f);
-		point.y = point.distance * std::sinf((point.angle - 270.0f) * M_PI / 180.0f);
+		point.x = point.distance * std::cos((point.angle - 270.0f) * M_PI / 180.0f);
+		point.y = point.distance * std::sin((point.angle - 270.0f) * M_PI / 180.0f);
 
 		output_data_point->push_back(point);
     }
