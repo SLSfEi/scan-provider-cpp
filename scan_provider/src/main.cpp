@@ -223,7 +223,7 @@ int main(int argc, const char* argv[]) {
         }
         else
         {
-            is_failing = FALSE;
+            is_failing = false;
         }
         std::string scan_csv = points_to_csv_string(&scan_data);
 
