@@ -194,7 +194,7 @@ int main(int argc, const char* argv[]) {
     }
     delay(2000);
 
-    bool is_failing = FALSE;
+    bool is_failing = false;
     int cur_delay = 300;
     while (true) {
 
@@ -216,7 +216,7 @@ int main(int argc, const char* argv[]) {
                 }
             } else
             {
-                is_failing = TRUE;
+                is_failing = false;
             }
             delay(cur_delay);
             continue;
