@@ -134,9 +134,9 @@ int main(int argc, const char* argv[]) {
     auto server_endpoint = reader.Get("connection","server_endpoint","UNDEFINED");
     auto serial_port = reader.Get("serial","port","UNDEFINED");
     auto serial_baudrate = reader.GetInteger("serial","baudrate",-1);
-    auto base_delay = reader.GetInteger("retry","base_delay", -1);
-    auto max_delay = reader.GetInteger("retry","max_delay", -1);
-    auto gen_random = reader.GetBoolean("debug","gen_random",false);
+    int base_delay = reader.GetInteger("retry","base_delay", -1);
+    int max_delay = reader.GetInteger("retry","max_delay", -1);
+    bool gen_random = reader.GetBoolean("debug","gen_random",false);
     std::cout << "config.ini loaded" << std::endl;
     check_config_var("server_endpoint", server_endpoint);
     check_config_var("serial_port", serial_port);
