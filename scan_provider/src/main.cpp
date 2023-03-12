@@ -67,17 +67,21 @@ void ctrlc(int)
     ctrl_c_pressed = true;
 }
 
-void check_config_var(std::string name, std::string var, std::string default="UNDEFINED"){
-    if(var != default){
+bool check_config_var(std::string name, std::string var, std::string default_val="UNDEFINED", bool will_exit=true){
+    if(var != default_val){
         std::cout << name << ": " << var << std::endl;
+        return true;
     } else {
         std::cout << name << " is undefined, exiting" << std::endl;
-        exit(1);
+        if(will_exit){
+			exit(1);
+		}
+		return false;
     }
 }
 
-bool check_config_var(std::string name, int var, int default=-1, bool will_exit=true){
-    if(var != default){
+bool check_config_var(std::string name, int var, int default_val=-1, bool will_exit=true){
+    if(var != default_val){
         std::cout << name << ": " << var << std::endl;
         return true;
     } else {
