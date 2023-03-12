@@ -1,3 +1,4 @@
 [submodule "lib/cpr"]
 	path = lib/cpr
 	url = https://github.com/libcpr/cpr.git
+	branch = 1.9.x
