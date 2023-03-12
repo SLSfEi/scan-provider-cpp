@@ -12,7 +12,8 @@ target_include_directories(scan_provider PRIVATE
 )
 
 file(GLOB_RECURSE CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/config/*")
-configure_file(${CONFIG_FILES} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
+file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+configure_file(${CONFIG_FILES} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" COPYONLY)
 
 target_link_libraries(scan_provider LINK_PUBLIC sl_lidar_sdk)
 target_link_libraries(scan_provider LINK_PUBLIC cpr)
