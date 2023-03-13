@@ -65,6 +65,13 @@ bool ctrl_c_pressed;
 void ctrlc(int)
 {
     ctrl_c_pressed = true;
+    INIReader reader("./config.ini");
+    if (reader.ParseError() == 0) {
+        bool gen_random = reader.GetBoolean("debug","gen_random",false);
+        if(gen_random){
+            exit(0);
+        }
+    }
 }
 
 bool check_config_var(std::string name, std::string var, std::string default_val="UNDEFINED", bool will_exit=true){
