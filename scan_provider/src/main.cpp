@@ -145,8 +145,8 @@ int main(int argc, const char* argv[]) {
     auto server_endpoint = reader.Get("connection","server_endpoint","UNDEFINED");
     auto serial_port = reader.Get("serial","port","UNDEFINED");
     auto serial_baudrate = reader.GetInteger("serial","baudrate",-1);
-    int base_delay = reader.GetInteger("retry","base_delay", -1);
-    int max_delay = reader.GetInteger("retry","max_delay", -1);
+    int base_delay = reader.GetInteger("retry","base_delay", 300);
+    int max_delay = reader.GetInteger("retry","max_delay", 3000);
     float correction_offset = reader.GetFloat("correction","offset", 0.0f);
     float correction_multiplier = reader.GetFloat("correction","multiplier", 1.0f);
     bool gen_random = reader.GetBoolean("debug","gen_random",false);
