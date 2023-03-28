@@ -3,7 +3,7 @@
 
 Scan provider interfaces with rplidar device using [Slamtec/rplidar_sdk](https://github.com/Slamtec/rplidar_sdk). Then sends processed data points to [SLSfEi/web-app](https://github.com/SLSfEi/web-app) backend via HTTP POST request using [libcpr/cpr](https://github.com/libcpr/cpr)
 
-When raw data points are read. They will be corrected with linear regression to improve readings accuracy. After that, they will be serialized as CSV and sent to the backend to be displayed.
+When raw data points are read. They will be corrected with linear regression to improve readings accuracy. After that, they will be serialized as CSV and sent to the [SLSfEi/web-app](https://github.com/SLSfEi/web-app) to be displayed.
 
 # Configurations
 The configuration file must be named `config.ini` and be located in the same directory as the `scan_provider` executable.
