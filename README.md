@@ -1,5 +1,5 @@
 # Scan Provider
-"Scan Provider" or "Driver" refers to this c++ program.
+**Note:** "Scan Provider" or "Driver" refers to this c++ program.
 
 Scan provider interfaces with rplidar device using [Slamtec/rplidar_sdk](https://github.com/Slamtec/rplidar_sdk). Then sends processed data points to [SLSfEi/web-app](https://github.com/SLSfEi/web-app) backend via HTTP POST request using [libcpr/cpr](https://github.com/libcpr/cpr)
 
